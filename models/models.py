@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# from odoo import models, fields, api
+from odoo import models, fields, api
 
-class biblioteca(models.Model):
+class biblioteca_libro(models.Model):
      _name = 'biblioteca.libro'
      _description = 'biblioteca.biblioteca'
 
