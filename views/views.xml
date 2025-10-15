@@ -8,8 +8,12 @@
       <field name="arch" type="xml">
         <list>
           <field name="name"/>
-          <field name="value"/>
-          <field name="value2"/>
+          <field name="autor"/>
+          <field name="ejemplares"/>
+          <field name="description"/>
+          <field name="categoria"/>
+          <field name="costo"/>
+          <field name="ubicacion"/>
         </list>
       </field>
     </record>
@@ -19,10 +23,13 @@
       <field name="model">biblioteca.libro</field>
       <field name="arch" type="xml">
         <list>
-          <field name="name"/>
-          <field name="value"/>
-          <field name="value2"/>
+          <field name="firstname"/>
+          <field name="autor"/>
+          <field name="ejemplares"/>
           <field name="description"/>
+          <field name="isbn"/>
+          <field name="costo"/>
+          <field name="ubicacion"/>
         </list>
       </field>
     </record>

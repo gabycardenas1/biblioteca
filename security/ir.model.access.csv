@@ -1,2 +1,22 @@
+# =====================================================================
+# Archivo de permisos: ir.model.access.csv
+# Define los permisos de acceso para los modelos del módulo Biblioteca
+# =====================================================================
+
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+# Accesos para los libros
 access_biblioteca_libro,biblioteca.libro,model_biblioteca_libro,base.group_user,1,1,1,1
+
+# Accesos para los autores
+access_biblioteca_autor,biblioteca.autor,model_biblioteca_autor,base.group_user,1,1,1,1
+
+
+# Accesos para los préstamos
+access_biblioteca_prestamo,biblioteca.prestamo,model_biblioteca_prestamo,base.group_user,1,1,1,1
+
+# Accesos para las multas
+access_biblioteca_multa,biblioteca.multa,model_biblioteca_multa,base.group_user,1,1,1,1
+
+# Accesos para los usuarios
+access_biblioteca_usuarios,biblioteca.usuarios,model_biblioteca_usuarios,base.group_user,1,1,1,1
