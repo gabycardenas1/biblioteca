@@ -14,6 +14,8 @@
           <field name="ejemplares"/>
           <field name="costo"/>
           <field name="ubicacion"/>
+          <field name="prestamo_id"/>
+          <field name="multa_id"/>
         </list>
       </field>
     </record>
@@ -23,23 +25,42 @@
       <field name="model">biblioteca.libro</field>
       <field name="arch" type="xml">
         <form>
-          <field name="name"/>
-          <field name="autor"/>
-          <field name="categoria"/>
-          <field name="ejemplares"/>
-          <field name="costo" readonly="1"/>
-          <field name="ubicacion"/>
-          <field name="description"/>
+          <sheet>
+            <group>
+              <field name="name"/>
+              <field name="autor"/>
+              <field name="categoria"/>
+              <field name="ejemplares"/>
+              <field name="costo" readonly="1"/>
+              <field name="ubicacion"/>
+              <field name="description"/>
+              <field name="prestamo_id" readonly="1"/>
+              <field name="multa_id" readonly="1"/>
+            </group>
+          </sheet>
         </form>
       </field>
     </record>
 
+    <!-- Vista de búsqueda -->
+    <record model="ir.ui.view" id="biblioteca_libro_search">
+      <field name="name">biblioteca libro search</field>
+      <field name="model">biblioteca.libro</field>
+      <field name="arch" type="xml">
+        <search>
+          <field name="name" string="Título del libro"/>
+          <filter name="autor" string="Autor" context="{'group_by': 'autor'}"/>
+          <filter name="categoria" string="Categoría" context="{'group_by': 'categoria'}"/>
+        </search>
+      </field>
+    </record>
+
+    <!-- Acción de ventana -->
     <record model="ir.actions.act_window" id="biblioteca_libro_action_window">
       <field name="name">Libros</field>
       <field name="res_model">biblioteca.libro</field>
       <field name="view_mode">list,form</field>
     </record>
-
 
     <!-- ===================== AUTORES ===================== -->
 
@@ -70,7 +91,6 @@
       <field name="res_model">biblioteca.autor</field>
       <field name="view_mode">list,form</field>
     </record>
-
 
     <!-- ===================== USUARIOS ===================== -->
 
@@ -110,6 +130,35 @@
       <field name="view_mode">list,form</field>
     </record>
 
+    <!-- ===================== PERSONAL ===================== -->
+
+    <record model="ir.ui.view" id="biblioteca_personal_list">
+      <field name="name">biblioteca personal list</field>
+      <field name="model">biblioteca.personal</field>
+      <field name="arch" type="xml">
+        <list>
+          <field name="name"/>
+          <field name="codigo"/>
+        </list>
+      </field>
+    </record>
+
+    <record model="ir.ui.view" id="biblioteca_personal_form">
+      <field name="name">biblioteca personal form</field>
+      <field name="model">biblioteca.personal</field>
+      <field name="arch" type="xml">
+        <form>
+          <field name="name"/>
+          <field name="codigo"/>
+        </form>
+      </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="biblioteca_personal_action_window">
+      <field name="name">Personal</field>
+      <field name="res_model">biblioteca.personal</field>
+      <field name="view_mode">list,form</field>
+    </record>
 
     <!-- ===================== PRÉSTAMOS ===================== -->
 
@@ -125,6 +174,7 @@
           <field name="fecha_devolucion"/>
           <field name="multa_bol"/>
           <field name="multa"/>
+          <field name="personal_id"/>
         </list>
       </field>
     </record>
@@ -134,13 +184,26 @@
       <field name="model">biblioteca.prestamo</field>
       <field name="arch" type="xml">
         <form>
-          <field name="name"/>
-          <field name="usuario_id"/>
-          <field name="libro_id"/>
-          <field name="fecha_prestamo"/>
-          <field name="fecha_devolucion"/>
-          <field name="multa_bol"/>
-          <field name="multa"/>
+          <sheet>
+            <group>
+              <field name="name"/>
+              <field name="usuario_id"/>
+              <field name="libro_id"/>
+              <field name="fecha_prestamo" readonly="1"/>
+              <field name="fecha_devolucion" readonly="1"/>
+              <field name="multa_bol" readonly="1"/>
+              <field name="multa" readonly="1"/>
+              <field name="personal_id"/>
+            </group>
+            <footer>
+              <button name="action_prestar" type="object" string="Prestar"
+                      attrs="{'invisible':[('fecha_prestamo','!=',False)]}"
+                      class="btn-primary"/>
+              <button name="action_devolver" type="object" string="Devolver"
+                      attrs="{'invisible':[('fecha_prestamo','=',False)]}"
+                      class="btn-success"/>
+            </footer>
+          </sheet>
         </form>
       </field>
     </record>
@@ -150,7 +213,6 @@
       <field name="res_model">biblioteca.prestamo</field>
       <field name="view_mode">list,form</field>
     </record>
-
 
     <!-- ===================== MULTAS ===================== -->
 
@@ -188,11 +250,10 @@
       <field name="view_mode">list,form</field>
     </record>
 
-
     <!-- ===================== MENÚS ===================== -->
 
     <menuitem name="Biblioteca" id="biblioteca_menu"/>
-    
+
     <menuitem name="Libros" 
       id="biblioteca_menu_libros" 
       parent="biblioteca_menu"
@@ -207,6 +268,11 @@
       id="biblioteca_menu_usuarios" 
       parent="biblioteca_menu"
       action="biblioteca_usuario_action_window"/>
+
+    <menuitem name="Personal" 
+      id="biblioteca_menu_personal" 
+      parent="biblioteca_menu"
+      action="biblioteca_personal_action_window"/>
 
     <menuitem name="Préstamos" 
       id="biblioteca_menu_prestamos" 
