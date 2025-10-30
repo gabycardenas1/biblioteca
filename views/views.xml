@@ -3,62 +3,108 @@
 
     <!-- ===================== LIBROS ===================== -->
     <record model="ir.ui.view" id="biblioteca_libro_list">
-      <field name="name">biblioteca libro list</field>
-      <field name="model">biblioteca.libro</field>
-      <field name="arch" type="xml">
-        <list>
-          <field name="name" string="Título"/>
-          <field name="autor" string="Autor"/>
-          <field name="categoria" string="Categoría"/>
-          <field name="ejemplares" string="Ejemplares"/>
-          <field name="costo" string="Costo"/>
-          <field name="ubicacion" string="Ubicación"/>
-          <field name="prestamo_id" string="Préstamo"/>
-          <field name="multa_id" string="Multa"/>
-        </list>
-      </field>
+        <field name="name">biblioteca libro list</field>
+        <field name="model">biblioteca.libro</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" string="Título"/>
+                <field name="autor" string="Autor"/>
+                <field name="categoria" string="Categoría"/>
+                <field name="editorial" string="Editorial"/>
+                <field name="paginas" string="Páginas"/>
+                <field name="fecha_publicacion" string="Fecha Publicación"/>
+                <field name="ejemplares" string="Ejemplares"/>
+                <field name="costo" string="Costo"/>
+                <field name="ubicacion" string="Ubicación"/>
+                <field name="prestamo_id" string="Préstamo"/>
+                <field name="multa_id" string="Multa"/>
+                <field name="state" invisible="1"/>
+            </list>
+        </field>
     </record>
 
     <record model="ir.ui.view" id="biblioteca_libro_form">
-      <field name="name">biblioteca libro form</field>
-      <field name="model">biblioteca.libro</field>
-      <field name="arch" type="xml">
-        <form>
-          <sheet>
-            <group>
-              <field name="name" string="Título del libro" placeholder="Ingrese el título del libro"/>
-              <field name="isbn" string="ISBN" placeholder="Ingrese el código ISBN"/>
-              <field name="autor" string="Autor" placeholder="Seleccione o ingrese el autor"/>
-              <field name="categoria" string="Categoría" placeholder="Ingrese la categoría"/>
-              <field name="ejemplares" string="Número de ejemplares" placeholder="Cantidad disponible"/>
-              <field name="costo" string="Costo" placeholder="Costo del libro" readonly="1"/>
-              <field name="ubicacion" string="Ubicación" placeholder="Ubicación física en la biblioteca"/>
-              <field name="description" string="Resumen" placeholder="Breve descripción del libro"/>
-              <field name="prestamo_id" string="Préstamo asociado" placeholder="Préstamo actual" readonly="1"/>
-              <field name="multa_id" string="Multa asociada" placeholder="Multa actual" readonly="1"/>
-            </group>
-          </sheet>
-        </form>
-      </field>
+        <field name="name">biblioteca libro form</field>
+        <field name="model">biblioteca.libro</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,saved"/>
+
+                    <button name="action_fill_book_data" 
+                            type="object" 
+                            string="Buscar libro" 
+                            class="oe_highlight"
+                            invisible="state == 'deleted'" 
+                            help="Busca los detalles del libro: primero por ISBN, luego por Nombre."/>
+
+                    <button name="action_save_record" 
+                            type="object" 
+                            string="Guardar" 
+                            class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    
+                    <button string="Descartar" special="cancel" invisible="state != 'draft'"/>
+
+                    <button name="action_delete_record" 
+                            type="object" 
+                            string="Eliminar Registro" 
+                            confirm="¿Está seguro de que desea eliminar este libro permanentemente?"
+                            class="btn-danger"
+                            invisible="state == 'saved' or state == 'deleted'"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name" string="Título del libro" placeholder="Ingrese el título del libro"/>
+                        <field name="isbn" string="ISBN" placeholder="Ingrese el código ISBN"/>
+                        <field name="autor" string="Autor" placeholder="Seleccione o ingrese el autor"/>
+                        <field name="categoria" string="Categoría" placeholder="Ingrese la categoría"/>
+
+                        <field name="editorial" string="Editorial"/>
+                        <field name="fecha_publicacion" string="Fecha de Publicación"/>
+                        <field name="paginas" string="Páginas"/>
+                        <field name="ejemplares" string="Número de ejemplares" placeholder="Cantidad disponible"/>
+                        <field name="costo" string="Costo" placeholder="Costo del libro" readonly="1"/>
+                        <field name="ubicacion" string="Ubicación" placeholder="Ubicación física en la biblioteca"/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Resumen">
+                            <field name="description" string="Resumen" placeholder="Breve descripción del libro"/>
+                        </page>
+                        <page string="Datos Técnicos">
+                            <field name="openlibrary_key" string="Open Library Key" readonly="1"/>
+                        </page>
+                    </notebook>
+                    
+                    <group name="prestamo_multa" string="Gestión de Préstamos">
+                        <field name="prestamo_id" string="Préstamo asociado" placeholder="Préstamo actual" readonly="1"/>
+                        <field name="multa_id" string="Multa asociada" placeholder="Multa actual" readonly="1"/>
+                    </group>
+                    
+                </sheet>
+            </form>
+        </field>
     </record>
 
     <record model="ir.ui.view" id="biblioteca_libro_search">
-      <field name="name">biblioteca libro search</field>
-      <field name="model">biblioteca.libro</field>
-      <field name="arch" type="xml">
-        <search>
-          <field name="name" string="Título"/>
-          <filter name="autor" string="Autor" context="{'group_by':'autor'}"/>
-          <filter name="categoria" string="Categoría" context="{'group_by':'categoria'}"/>
-        </search>
-      </field>
+        <field name="name">biblioteca libro search</field>
+        <field name="model">biblioteca.libro</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Título"/>
+                <filter name="autor" string="Autor" context="{'group_by':'autor'}"/>
+                <filter name="categoria" string="Categoría" context="{'group_by':'categoria'}"/>
+            </search>
+        </field>
     </record>
 
     <record model="ir.actions.act_window" id="biblioteca_libro_action_window">
-      <field name="name">Libros</field>
-      <field name="res_model">biblioteca.libro</field>
-      <field name="view_mode">list,form</field>
+        <field name="name">Libros</field>
+        <field name="res_model">biblioteca.libro</field>
+        <field name="view_mode">list,form</field>
     </record>
+
 
     <!-- ===================== AUTORES ===================== -->
     <record model="ir.ui.view" id="biblioteca_autor_list">
@@ -192,17 +238,22 @@
       <field name="arch" type="xml">
         <form string="Préstamo">
           <header>
-            <!-- Botones de acción -->
-            <button name="action_prestar" type="object" string="Prestar"
-                    states="borrador" class="btn-primary"/>
-            <button name="action_devolver" type="object" string="Devolver"
-                    states="prestado" class="btn-success"/>
+              <!-- Botón para prestar -->
+              <button name="action_prestar" type="object" string="Prestar"
+                      class="btn-primary"
+                      invisible="estado != 'borrador'"/>
 
-            <!-- Barra de estado -->
-            <field name="estado" widget="statusbar"
-                  statusbar_visible="borrador,prestado,devuelto,multa"
-                  statusbar_colors='{"borrador":"gray","prestado":"blue","devuelto":"green","multa":"red"}'/>
+              <!-- Botón para devolver -->
+              <button name="action_devolver" type="object" string="Devolver"
+                      class="btn-success"
+                      invisible="estado != 'prestado'"/>
+
+              <!-- Barra de estado -->
+              <field name="estado" widget="statusbar"
+                    statusbar_visible="borrador,prestado,devuelto,multa"
+                    statusbar_colors='{"borrador":"gray","prestado":"blue","devuelto":"green","multa":"red"}'/>
           </header>
+
 
           <sheet>
             <group>

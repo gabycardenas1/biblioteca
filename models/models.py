@@ -12,6 +12,13 @@ class Biblioteca(models.Model):
     _description = 'biblioteca.biblioteca'
     _rec_name = 'name'
 
+    # Campo de estado 
+    state = fields.Selection([
+        ('draft', 'Borrador'),
+        ('saved', 'Guardado'),
+        ('deleted', 'Eliminado')
+    ], string='Estado', default='draft')
+
     name = fields.Char(string='Nombre libro')
     isbn = fields.Char(string='ISBN', placeholder='Ingrese el código ISBN')
     autor = fields.Many2one('biblioteca.autor', string='Autor del libro')
@@ -23,42 +30,227 @@ class Biblioteca(models.Model):
     prestamo_id = fields.Many2one('biblioteca.prestamo', string='Préstamo asociado')
     multa_id = fields.Many2one('biblioteca.multa', string='Multa asociada')
     readonly_after_prestado = fields.Boolean(string='Readonly after prestado', default=False)
+    editorial = fields.Char(string='Editorial')
+    paginas = fields.Integer(string='Páginas')
+    fecha_publicacion = fields.Char(string='Fecha de Publicación')
+    openlibrary_key = fields.Char(string='Open Library Key', readonly=True)
 
     @api.depends('ejemplares')
     def _value_pc(self):
         for record in self:
             record.costo = (record.ejemplares or 0) * 1.5
-
-    def consultar_api_openlibrary(self):
+            
+    def action_save_record(self):
+            """Establece el estado del registro a 'Guardado' (Saved)."""
+            for record in self:
+                # Forzamos un write para guardar cambios antes de cambiar el estado
+                record.write({'state': 'saved'})
+            return True
+    
+    def action_edit(self):
+        """Cambia el estado para entrar en modo Edición."""
         for record in self:
-            if not record.isbn:
-                raise ValidationError(_("Debe ingresar un ISBN antes de consultar la API."))
-            url = f"https://openlibrary.org/isbn/{record.isbn}.json"
-            try:
-                response = requests.get(url, timeout=10)
-                if response.status_code == 200:
-                    data = response.json()
-                    record.name = data.get('title', record.name)
-                    record.description = data.get('description', record.description if record.description else '')
-                    authors = data.get('authors', [])
-                    if authors:
-                        author_keys = [a.get('key') for a in authors if 'key' in a]
-                        if author_keys:
-                            author_url = f"https://openlibrary.org{author_keys[0]}.json"
-                            author_response = requests.get(author_url, timeout=10)
-                            if author_response.status_code == 200:
-                                author_data = author_response.json()
-                                autor_nombre = author_data.get('name')
-                                autor_obj = self.env['biblioteca.autor'].search([('firstname', '=', autor_nombre)], limit=1)
-                                if not autor_obj and autor_nombre:
-                                    autor_obj = self.env['biblioteca.autor'].create({'firstname': autor_nombre})
-                                record.autor = autor_obj.id
-                else:
-                    raise ValidationError(_("No se encontró información para el ISBN ingresado."))
-            except Exception as e:
-                raise ValidationError(_("Error al conectar con Open Library: %s") % str(e))
+            record.state = 'editing'
+        return True
+
+    def action_discard(self):
+        """Vuelve al estado Guardado y recarga los datos originales (descartar cambios)."""
+        for record in self:
+            if record.state == 'editing':
+                record.state = 'saved'
+            
+            # Recarga el registro para descartar cambios en el formulario.
+            # Si el registro no existe (está en draft), esto no tiene efecto.
+            if record.id:
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'reload',
+                }
+            
+            # Si está en 'draft' (nuevo), simplemente limpia la pantalla (Odoo lo hace con el botón 'cancel')
+            return self.env.ref('biblioteca.biblioteca_libro_action_window').read()[0]
 
 
+    def action_delete_record(self):
+        """Elimina el registro de la base de datos."""
+        self.ensure_one()
+        if self.prestamo_id or self.multa_id:
+            raise ValidationError(_("No se puede eliminar un libro que tiene préstamos o multas pendientes."))
+            
+        return self.unlink()
+
+    def action_fill_book_data(self):
+        """Función principal: Rellena los datos y mantiene en 'draft' o pasa a 'editing' si ya estaba guardado."""
+        for record in self:
+            # Lógica de limpieza y búsqueda (se asume que la lógica ya está definida)
+            
+            # Limpieza (solo los campos que rellena la API)
+            record.description = False
+            record.editorial = False
+            record.paginas = 0
+            record.fecha_publicacion = False
+            record.categoria = False
+            record.openlibrary_key = False
+            record.autor = False
+            
+            found = False
+            if record.isbn:
+                found = record._search_by_isbn()
+            if not found and record.name:
+                found = record._search_by_name()
+            
+            if not found:
+                raise ValidationError(_("No se pudieron encontrar datos para el libro."))
+            
+            # Si rellena datos en un registro ya guardado, pasa a edición.
+            if record.state == 'saved':
+                 record.state = 'editing'
+
+    # FUNCIONES AUXILIARES DE LA API
+    # ----------------------------------------------------
+    
+    def _get_description_and_image(self, olid):
+        if not olid:
+            return {}
+            
+        url = f"https://openlibrary.org{olid}.json"
+        
+        try:
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                description = data.get('description')
+                if isinstance(description, dict) and 'value' in description:
+                    description = description['value']
+                    
+                return {'description': description}
+            return {}
+        except Exception:
+            return {}
+
+
+    def _search_by_isbn(self):
+        self.ensure_one()
+        if not self.isbn:
+            return False
+        
+        url = f"https://openlibrary.org/isbn/{self.isbn}.json"
+        
+        try:
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                
+                self.name = data.get('title', self.name)
+                
+                publishers = data.get('publishers')
+                if isinstance(publishers, list) and publishers:
+                    self.editorial = publishers[0]
+                
+                self.paginas = data.get('number_of_pages', 0)
+                self.fecha_publicacion = data.get('publish_date', False)
+                self.openlibrary_key = data.get('works', [{}])[0].get('key', False) 
+
+                if self.openlibrary_key:
+                    desc_data = self._get_description_and_image(self.openlibrary_key)
+                    if desc_data.get('description'):
+                        self.description = desc_data['description']
+                
+                return True
+            return False
+        except Exception:
+            return False
+
+
+    def _search_by_name(self):
+        self.ensure_one()
+        if not self.name:
+            return False
+
+        nombre_formateado = self.name.replace(' ', '+')
+        url = f"https://openlibrary.org/search.json?q={nombre_formateado}&limit=1"
+        
+        try:
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data and 'docs' in data and data['docs']:
+                    primer_resultado = data['docs'][0]
+                    
+                    self.name = primer_resultado.get('title', self.name)
+                    self.openlibrary_key = primer_resultado.get('key', False)
+                    isbns = primer_resultado.get('isbn', [])
+                    if isbns and not self.isbn:
+                        self.isbn = isbns[0]
+                        
+                    subjects = primer_resultado.get('subject', [])
+                    if subjects:
+                        self.categoria = subjects[0]
+                    self.fecha_publicacion = primer_resultado.get('first_publish_year', False)
+                    
+                    publishers = primer_resultado.get('publisher')
+                    if isinstance(publishers, list) and publishers:
+                        self.editorial = publishers[0]
+                    
+                    self.paginas = primer_resultado.get('number_of_pages_median', 0)
+
+                    autores = primer_resultado.get('author_name', [])
+                    if autores:
+                        autor_nombre = autores[0]
+                        autor_obj = self.env['biblioteca.autor'].search([('firstname', '=', autor_nombre)], limit=1)
+                        if not autor_obj:
+                            autor_obj = self.env['biblioteca.autor'].create({'firstname': autor_nombre})
+                        self.autor = autor_obj.id
+
+                    if self.openlibrary_key:
+                        desc_data = self._get_description_and_image(self.openlibrary_key)
+                        if desc_data.get('description'):
+                            self.description = desc_data['description']
+
+                    return True
+                return False
+            return False
+        except Exception:
+            return False
+
+    # ACCIÓN PRINCIPAL LLAMADA DESDE EL BOTÓN XML 
+    # ----------------------------------------------------
+    
+    def action_fill_book_data(self):
+        for record in self:
+            record.description = False
+            record.editorial = False
+            record.paginas = 0
+            record.fecha_publicacion = False
+            record.categoria = False
+            record.openlibrary_key = False
+            record.autor = False
+            
+            found = False
+            
+            if record.isbn:
+                found = record._search_by_isbn()
+            
+            if not found and record.name:
+                found = record._search_by_name()
+            
+            if not found:
+                raise ValidationError(_("No se pudieron encontrar datos para el libro en Open Library. Intente verificar el ISBN o el Título."))
+
+    # FUNCIÓN DE ELIMINAR 
+    # ----------------------------------------------------
+    
+    def action_delete_record(self):
+        """Elimina el registro de la base de datos."""
+        self.ensure_one()
+        if self.prestamo_id or self.multa_id:
+            raise ValidationError(_("No se puede eliminar un libro que tiene préstamos o multas pendientes."))
+            
+        return self.unlink()
+    
+    
+    
 # =============================
 # MODELO: AUTOR
 # =============================
