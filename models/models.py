@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import requests
 
 # =============================
-# MODELO: LIBRO (manteniendo tu código original)
+# MODELO: LIBRO 
 # =============================
 class Biblioteca(models.Model):
     _name = 'biblioteca.libro'
@@ -155,8 +155,11 @@ class BibliotecaPrestamo(models.Model):
     libro_id = fields.One2many('biblioteca.libro', 'prestamo_id', string='Libro')
     usuario_id = fields.Many2one('biblioteca.usuarios', string='Usuarios')
     personal_id = fields.Many2one('biblioteca.personal', string='Personal que presta')
-    estado = fields.Selection([('borrador','Borrador'),('prestado','Prestado'),('devuelto','Devuelto')],
-                              default='borrador', string='Estado')
+    estado = fields.Selection([
+    ('borrador', 'Borrador'),
+    ('prestado', 'Prestado'),
+    ('devuelto', 'Devuelto'),
+    ('multa', 'Multa')], string='Estado', default='borrador')
     multa_bol = fields.Boolean(default=False)
     multa = fields.Float()
     multa_diaria = fields.Float(default=5.0, string='Multa por día')

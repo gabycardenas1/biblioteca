@@ -181,6 +181,7 @@
           <field name="multa_bol" string="¿Multa?"/>
           <field name="multa" string="Monto multa"/>
           <field name="personal_id" string="Personal"/>
+          <field name="estado" string="Estado"/>
         </list>
       </field>
     </record>
@@ -189,7 +190,20 @@
       <field name="name">biblioteca prestamo form</field>
       <field name="model">biblioteca.prestamo</field>
       <field name="arch" type="xml">
-        <form>
+        <form string="Préstamo">
+          <header>
+            <!-- Botones de acción -->
+            <button name="action_prestar" type="object" string="Prestar"
+                    states="borrador" class="btn-primary"/>
+            <button name="action_devolver" type="object" string="Devolver"
+                    states="prestado" class="btn-success"/>
+
+            <!-- Barra de estado -->
+            <field name="estado" widget="statusbar"
+                  statusbar_visible="borrador,prestado,devuelto,multa"
+                  statusbar_colors='{"borrador":"gray","prestado":"blue","devuelto":"green","multa":"red"}'/>
+          </header>
+
           <sheet>
             <group>
               <field name="name" string="Referencia" placeholder="Referencia del préstamo"/>
@@ -201,14 +215,11 @@
               <field name="multa" string="Monto multa" placeholder="Monto de la multa" readonly="1"/>
               <field name="personal_id" string="Personal" placeholder="Personal que realiza el préstamo"/>
             </group>
-            <footer>
-              <button name="action_prestar" type="object" string="Prestar" class="btn-primary"/>
-              <button name="action_devolver" type="object" string="Devolver" class="btn-success"/>
-            </footer>
           </sheet>
         </form>
       </field>
     </record>
+
 
     <record model="ir.actions.act_window" id="biblioteca_prestamo_action_window">
       <field name="name">Préstamos</field>
