@@ -12,10 +12,10 @@ class Biblioteca(models.Model):
     _description = 'biblioteca.biblioteca'
     _rec_name = 'name'
 
-    # Campo de estado 
     state = fields.Selection([
         ('draft', 'Borrador'),
         ('saved', 'Guardado'),
+        ('editing', 'Edición'),
         ('deleted', 'Eliminado')
     ], string='Estado', default='draft')
 
@@ -40,51 +40,55 @@ class Biblioteca(models.Model):
         for record in self:
             record.costo = (record.ejemplares or 0) * 1.5
             
+    # ----------------------------------------------------
+    # FUNCIONES DE FLUJO
+    # ----------------------------------------------------
+
     def action_save_record(self):
-            """Establece el estado del registro a 'Guardado' (Saved)."""
-            for record in self:
-                # Forzamos un write para guardar cambios antes de cambiar el estado
-                record.write({'state': 'saved'})
-            return True
+        for record in self:
+            record.write({'state': 'saved'})
+        return True
     
     def action_edit(self):
-        """Cambia el estado para entrar en modo Edición."""
         for record in self:
             record.state = 'editing'
         return True
 
     def action_discard(self):
-        """Vuelve al estado Guardado y recarga los datos originales (descartar cambios)."""
-        for record in self:
-            if record.state == 'editing':
-                record.state = 'saved'
+        self.ensure_one()
+        
+        # Caso 1: Si está en Borrador (registro nuevo, id=False), limpia los campos.
+        if not self.id or self.state == 'draft':
+            self.write({
+                'name': False, 'isbn': False, 'autor': False, 'ejemplares': 0, 'description': False, 
+                'categoria': False, 'ubicacion': False, 'editorial': False, 'paginas': 0, 
+                'fecha_publicacion': False, 'openlibrary_key': False
+            })
+            return {
+                            'type': 'ir.actions.act_window',
+                            'res_model': 'biblioteca.libro',
+                            'view_mode': 'form',
+                            'views': [(False, 'form')],
+                            'target': 'current',
+                        }
             
-            # Recarga el registro para descartar cambios en el formulario.
-            # Si el registro no existe (está en draft), esto no tiene efecto.
-            if record.id:
-                return {
-                    'type': 'ir.actions.client',
-                    'tag': 'reload',
-                }
-            
-            # Si está en 'draft' (nuevo), simplemente limpia la pantalla (Odoo lo hace con el botón 'cancel')
-            return self.env.ref('biblioteca.biblioteca_libro_action_window').read()[0]
+        # Caso 2: Si está en Edición, vuelve a Guardado y revierte los cambios
+        if self.state == 'editing':
+            self.state = 'saved'
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
 
 
     def action_delete_record(self):
-        """Elimina el registro de la base de datos."""
         self.ensure_one()
         if self.prestamo_id or self.multa_id:
             raise ValidationError(_("No se puede eliminar un libro que tiene préstamos o multas pendientes."))
-            
         return self.unlink()
 
     def action_fill_book_data(self):
-        """Función principal: Rellena los datos y mantiene en 'draft' o pasa a 'editing' si ya estaba guardado."""
         for record in self:
-            # Lógica de limpieza y búsqueda (se asume que la lógica ya está definida)
-            
-            # Limpieza (solo los campos que rellena la API)
             record.description = False
             record.editorial = False
             record.paginas = 0
@@ -98,11 +102,8 @@ class Biblioteca(models.Model):
                 found = record._search_by_isbn()
             if not found and record.name:
                 found = record._search_by_name()
-            
             if not found:
                 raise ValidationError(_("No se pudieron encontrar datos para el libro."))
-            
-            # Si rellena datos en un registro ya guardado, pasa a edición.
             if record.state == 'saved':
                  record.state = 'editing'
 
