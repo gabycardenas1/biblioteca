@@ -1,0 +1,61 @@
+<odoo>
+  <data>
+
+    <!-- LISTA -->
+    <record id="biblioteca_autor_list" model="ir.ui.view">
+        <field name="name">biblioteca autor list</field>
+        <field name="model">biblioteca.autor</field>
+        <field name="arch" type="xml">
+            <list string="Autores">
+                <field name="name"/>
+                <field name="nacionalidad"/>
+                <field name="fecha_nacimiento"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORMULARIO -->
+    <record id="biblioteca_autor_form" model="ir.ui.view">
+        <field name="name">biblioteca autor form</field>
+        <field name="model">biblioteca.autor</field>
+        <field name="arch" type="xml">
+            <form string="Autor">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="nacionalidad"/>
+                        <field name="fecha_nacimiento"/>
+                        <field name="biografia"/>
+                    </group>
+                    <footer>
+                        <button name="action_rellenar_openlibrary" 
+                                type="object" 
+                                string="Rellenar desde Open Library" 
+                                class="btn-primary"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- BÚSQUEDA -->
+    <record id="biblioteca_autor_search" model="ir.ui.view">
+        <field name="name">biblioteca autor search</field>
+        <field name="model">biblioteca.autor</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="nacionalidad" string="Nacionalidad" context="{'group_by':'nacionalidad'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACCIÓN -->
+    <record id="biblioteca_autor_action_window" model="ir.actions.act_window">
+        <field name="name">Autores</field>
+        <field name="res_model">biblioteca.autor</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+  </data>
+</odoo>

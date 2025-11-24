@@ -1,0 +1,65 @@
+<odoo>
+  <data>
+
+    <!-- ===================== LISTA ===================== -->
+    <record id="biblioteca_prestamo_list" model="ir.ui.view">
+        <field name="name">biblioteca prestamo list</field>
+        <field name="model">biblioteca.prestamo</field>
+        <field name="arch" type="xml">
+            <list string="Préstamos">
+                <field name="name"/>
+                <field name="usuario_id"/>
+                <field name="personal_id"/>
+                <field name="fecha_prestamo"/>
+                <field name="fecha_max_devolucion"/>
+                <field name="fecha_devolucion"/>
+                <field name="multa_total" string="Multa Total"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ===================== FORMULARIO ===================== -->
+    <record id="biblioteca_prestamo_form" model="ir.ui.view">
+        <field name="name">biblioteca prestamo form</field>
+        <field name="model">biblioteca.prestamo</field>
+        <field name="arch" type="xml">
+            <form string="Préstamo">
+                
+                <header>
+                    <button name="action_prestar" type="object" string="Prestar"
+                            class="oe_highlight" />
+                    <button name="action_devolver" type="object" string="Marcar Devuelto"
+                            class="oe_highlight" />
+                </header>
+
+                <sheet>
+                    <group string="Datos del préstamo">
+                        <field name="name" readonly="1"/>
+                        <field name="usuario_id"/>
+                        <field name="personal_id"/>
+                        <field name="libro_ids"/>
+                        <field name="fecha_prestamo"/>
+                        <field name="fecha_max_devolucion" readonly="1"/>
+                        <field name="fecha_devolucion" readonly="1"/>
+                    </group>
+
+                    <group string="Multas generadas">
+                        <field name="tiene_multa" readonly="1"/>
+                        <field name="multa_total" readonly="1"/>
+                        <field name="multa_ids" readonly="1"/>
+                    </group>
+                </sheet>
+
+            </form>
+        </field>
+    </record>
+
+    <!-- ===================== ACCIÓN ===================== -->
+    <record id="biblioteca_prestamo_action_window" model="ir.actions.act_window">
+        <field name="name">Préstamos</field>
+        <field name="res_model">biblioteca.prestamo</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+  </data>
+</odoo>

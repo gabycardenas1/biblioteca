@@ -23,7 +23,15 @@ Long description of module's purpose
     # always loaded
     'data': [
         'security/ir.model.access.csv',
-        'views/views.xml',
+        'views/autor_views.xml',
+        'views/libro_views.xml',
+        'views/multa_views.xml',
+        'views/personal_views.xml',
+        'views/prestamo_views.xml',
+        'views/usuario_views.xml',
+        'views/menus.xml',
+        'data/sequences.xml',
+        'data/cron.xml',
         #'views/templates.xml',
     ],
     # only loaded in demonstration mode

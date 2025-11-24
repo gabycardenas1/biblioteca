@@ -1,0 +1,29 @@
+<odoo>
+    <data noupdate="1">
+
+        <!-- SECUENCIA PARA PRÉSTAMOS -->
+        <record id="seq_prestamo" model="ir.sequence">
+            <field name="name">Secuencia Préstamos</field>
+            <field name="code">biblioteca.prestamo</field>
+            <field name="prefix">PREST-</field>
+            <field name="padding">4</field>
+        </record>
+
+        <!-- SECUENCIA PARA MULTAS -->
+        <record id="seq_multa" model="ir.sequence">
+            <field name="name">Secuencia Multas</field>
+            <field name="code">biblioteca.multa</field>
+            <field name="prefix">MULT-</field>
+            <field name="padding">4</field>
+        </record>
+
+        <!-- SECUENCIA PARA LIBROS -->
+        <record id="seq_libro" model="ir.sequence">
+            <field name="name">Secuencia Libros</field>
+            <field name="code">biblioteca.libro</field>
+            <field name="prefix">LIB-</field>
+            <field name="padding">4</field>
+        </record>
+
+    </data>
+</odoo>

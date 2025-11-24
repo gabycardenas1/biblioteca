@@ -1,0 +1,105 @@
+<odoo>
+    <data>
+
+        <!-- ==========================================================
+             LIST VIEW
+        =============================================================-->
+        <record id="biblioteca_libro_list" model="ir.ui.view">
+            <field name="name">biblioteca.libro.list</field>
+            <field name="model">biblioteca.libro</field>
+            <field name="arch" type="xml">
+                <list string="Libros">
+                    <field name="name"/>
+                    <field name="autor"/>
+                    <field name="categoria"/>
+                    <field name="editorial"/>
+                    <field name="ejemplares" string="Total"/>
+                    <field name="ejemplares_disponibles" string="Disponibles"/>
+                    <field name="ejemplares_prestados" string="Prestados"/>
+                    <field name="ejemplares_en_multa" string="Multa"/>
+                </list>
+            </field>
+        </record>
+
+
+        <!-- ==========================================================
+             FORM VIEW
+        =============================================================-->
+        <record id="biblioteca_libro_form" model="ir.ui.view">
+            <field name="name">biblioteca.libro.form</field>
+            <field name="model">biblioteca.libro</field>
+            <field name="arch" type="xml">
+                <form string="Libro">
+
+                    <sheet>
+                        <group string="Información del libro">
+                            <field name="name"/>
+                            <field name="isbn"/>
+                            <field name="autor"/>
+                            <field name="categoria"/>
+                            <field name="editorial"/>
+                            <field name="fecha_publicacion"/>
+                            <field name="paginas"/>
+                            <field name="ubicacion"/>
+                        </group>
+
+                        <group string="Inventario">
+                            <field name="ejemplares" string="Ejemplares Totales"/>
+                            <field name="ejemplares_disponibles" readonly="1"/>
+                            <field name="ejemplares_prestados" readonly="1"/>
+                            <field name="ejemplares_en_multa" readonly="1"/>
+                        </group>
+
+                        <notebook>
+                            <page string="Resumen">
+                                <field name="description"/>
+                            </page>
+                            <page string="Datos Técnicos">
+                                <field name="openlibrary_key" readonly="1"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+
+                </form>
+            </field>
+        </record>
+
+
+        <!-- ==========================================================
+             SEARCH VIEW
+        =============================================================-->
+        <record id="biblioteca_libro_search" model="ir.ui.view">
+            <field name="name">biblioteca.libro.search</field>
+            <field name="model">biblioteca.libro</field>
+            <field name="arch" type="xml">
+                <search string="Buscar Libro">
+                    <field name="name"/>
+                    <field name="autor"/>
+                    <field name="categoria"/>
+
+                    <filter name="group_autor"
+                            string="Agrupar por Autor"
+                            domain="[]"
+                            context="{'group_by':'autor'}"/>
+
+                    <filter name="group_categoria"
+                            string="Agrupar por Categoría"
+                            domain="[]"
+                            context="{'group_by':'categoria'}"/>
+                </search>
+            </field>
+        </record>
+
+
+        <!-- ==========================================================
+             ACTION WINDOW
+        =============================================================-->
+        <record id="biblioteca_libro_action_window" model="ir.actions.act_window">
+            <field name="name">Libros</field>
+            <field name="res_model">biblioteca.libro</field>
+            <field name="view_mode">list,form</field>
+            <field name="view_id" ref="biblioteca_libro_list"/>
+        </record>
+
+    </data>
+</odoo>
